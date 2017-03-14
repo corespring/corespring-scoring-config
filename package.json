@@ -1,0 +1,23 @@
+{
+  "name": "corespring-scoring-config",
+  "version": "1.0.0",
+  "description": "",
+  "files": [
+    "src/index.jsx",
+    "scoring-config.less"
+  ],
+  "main": "src/index.jsx",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "less": "^2.7.2",
+    "lodash": "^4.17.4",
+    "material-ui": "^0.17.1",
+    "react": "^15.4.2",
+    "react-dom": "^15.4.2",
+    "react-tap-event-plugin": "^2.0.1"
+  }
+}
