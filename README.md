@@ -1,6 +1,8 @@
 # corespring-scoring-config
 
-`corespring-scoring-config` is a panel that allows for the editing of scoring properties, for use within PIE configuration panels. It is very much a work in progress.
+[![Build Status](https://travis-ci.org/PieElements/corespring-choice.svg?branch=master)](https://travis-ci.org/corespring/corespring-scoring-config)
+
+`corespring-scoring-config` is a panel that allows for the editing of scoring properties, for use within PIE configuration panels.
 
 ## Usage
 
