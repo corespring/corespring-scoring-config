@@ -3,42 +3,68 @@ import ReactDom from 'react-dom';
 import * as _ from 'lodash';
 
 import TextField from 'material-ui/TextField';
+import NumberTextField from './number-text-field';
 import RaisedButton from 'material-ui/RaisedButton';
 import {Card, CardActions, CardHeader, CardText} from 'material-ui/Card';
 import IconButton from 'material-ui/IconButton';
 import ActionDelete from 'material-ui/svg-icons/action/delete';
 
+import Decimal from 'decimal.js';
+
 require('./scoring-config.less');
+
+export const defaultPercent = 0.2;
 
 export default class PartialScoringConfig extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = {
-      partialScoring: _.clone(props.partialScoring)
+    this.state = this._toState(props);
+  }
+
+  _isInProgress({ correctCount, weight }) {
+    return correctCount === '' || weight === '';
+  }
+
+  _toState(props) {
+    return {
+      partialScoring: (props.partialScoring === undefined) ? [
+        {
+          correctCount: '',
+          weight: ''
+        }
+      ] : props.partialScoring.map(({ correctCount, weight }) => {
+        return {
+          correctCount: correctCount,
+          weight: new Decimal(weight).mul(100).toNumber()
+        };
+      })
     };
   }
 
-  componentWillReceiveProps(props) {
-    this.setState({
-      partialScoring: _.clone(props.partialScoring)
+  _fromState(partialScoring) {
+    return partialScoring.filter((partialScoring) => !this._isInProgress(partialScoring)).map((partialScoring) => {
+      return {
+        correctCount: partialScoring.correctCount,
+        weight: new Decimal(partialScoring.weight).div(100).toNumber()
+      };
     });
   }
 
   addScoringScenario() {
     let self = this;
-    function findMaxNumberOfCorrectInScoringScenarios() {
-      let maxNumberOfCorrect = 0;
+    function findMaxcorrectCountInScoringScenarios() {
+      let maxcorrectCount = 0;
       _.each(self.state.partialScoring, (ps) => {
-        if (ps.numberOfCorrect > maxNumberOfCorrect) {
-          maxNumberOfCorrect = ps.numberOfCorrect;
+        if (ps.correctCount > maxcorrectCount) {
+          maxcorrectCount = ps.correctCount;
         }
       });
-      return maxNumberOfCorrect;
+      return maxcorrectCount;
     }
 
-    let maxNumberOfCorrect = findMaxNumberOfCorrectInScoringScenarios();
-    this.state.partialScoring.push(this._makeScenario(maxNumberOfCorrect + 1, 20));
+    let maxcorrectCount = findMaxcorrectCountInScoringScenarios();
+    this.state.partialScoring.push(this._makeScenario(maxcorrectCount + 1, defaultPercent * 100));
     this._updateScoring(this.state.partialScoring);
   }
   
@@ -48,38 +74,38 @@ export default class PartialScoringConfig extends React.Component {
     this._updateScoring(this.state.partialScoring);
   }
 
-  onNumberOfCorrectChange(index, event) {
-    let newScoring = this.state.partialScoring[index];
+  _onUpdate(index, value, key) {
+    let update = _.cloneDeep(this.state.partialScoring);
+    let newScoring = update[index];
+    this.state.partialScoring[index][key] = value;
     try {
-      newScoring.numberOfCorrect = parseFloat(event.target.value);
-      this._updateScoring(this.state.partialScoring);
+      if (value === '') {
+        update.splice(index, 1);
+      } else {
+        newScoring[key] = parseFloat(value);
+      }
+      this._updateScoring(update);
     } catch (e) {
       console.log('error', e);
     }
   }
 
-  onPercentageChange(index, event) {
-    let newScoring = this.state.partialScoring[index];
-    try {
-      newScoring.scorePercentage = parseFloat(event.target.value);
-      this._updateScoring(this.state.partialScoring);
-    } catch (e) {
-      console.log('error', e);
-    }
+  onNumberOfCorrectChange(index, event, value) {
+    this._onUpdate(index, value, 'correctCount');
+  }
+
+  onPercentageChange(index, event, value) {
+    this._onUpdate(index, value, 'weight');
   }
 
   _updateScoring(newScoring) {
-    this.setState({
-      partialScoring: newScoring
-    }, (state) => {
-      this.props.onPartialScoringChange(newScoring);
-    });
+    this.props.onPartialScoringChange(this._fromState(newScoring));
   }
 
-  _makeScenario(numberOfCorrect, scorePercentage) {
+  _makeScenario(correctCount, weight) {
     return {
-      numberOfCorrect: numberOfCorrect,
-      scorePercentage: scorePercentage
+      correctCount: correctCount,
+      weight: weight
     };
   }
 
@@ -102,21 +128,23 @@ export default class PartialScoringConfig extends React.Component {
                 this.state.partialScoring.map((scenario, index) => {
                   return <li className="scenario" key={index}>
                     If
-                    <TextField id={`numberOfCorrect-${index}`} style={scoringFieldStyle}
+                    <NumberTextField id={`correct-count-${index}`} style={scoringFieldStyle}
                       min={1}
-                      max={this.state.maxNumberOfScoringScenarios}
-                      value={scenario.numberOfCorrect || ''}
+                      name={`correct-count-${index}`}
+                      max={maxNumberOfScoringScenarios}
+                      value={scenario.correctCount}
                       onChange={this.onNumberOfCorrectChange.bind(this, index)} />
                     of correct answers is/are selected, award
-                    <TextField id={`scorePercentage-${index}`} style={scoringFieldStyle}
+                    <NumberTextField id={`weight-${index}`} style={scoringFieldStyle}
                       min={1}
+                      name={`weight-${index}`}
                       max={99}
-                      value={scenario.scorePercentage || ''}
+                      value={scenario.weight}
                       onChange={this.onPercentageChange.bind(this, index)} />
                     % of full credit.
                     {
                       (canRemoveScoringScenario) ? (
-                        <IconButton onClick={this.removeScoringScenario.bind(this, index)}><ActionDelete/></IconButton>
+                        <IconButton className="delete-button" onClick={this.removeScoringScenario.bind(this, index)}><ActionDelete/></IconButton>
                       ) : <div/>
                     }
                   </li>
@@ -127,7 +155,7 @@ export default class PartialScoringConfig extends React.Component {
           {
             (canAddScoringScenario === true) ? (
               <div className="add-scoring-scenario">
-                <RaisedButton label="Add another scenario" onClick={this.addScoringScenario.bind(this)}/>
+                <RaisedButton className="add-button" label="Add another scenario" onClick={this.addScoringScenario.bind(this)}/>
               </div>
             ) : <div/>
           }
