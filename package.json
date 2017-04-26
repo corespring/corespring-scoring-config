@@ -4,6 +4,7 @@
   "description": "",
   "files": [
     "src/index.jsx",
+    "src/multi-partial-scoring-config.jsx",
     "src/number-text-field.jsx",
     "src/scoring-config.less"
   ],
