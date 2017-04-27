@@ -6,7 +6,8 @@
     "src/index.jsx",
     "src/multi-partial-scoring-config.jsx",
     "src/number-text-field.jsx",
-    "src/scoring-config.less"
+    "src/scoring-config.less",
+    "src/scoring-config-row.jsx"
   ],
   "main": "src/index.jsx",
   "scripts": {
