@@ -15,8 +15,7 @@ class MultiPartialScoringConfig extends React.Component {
   }
 
   _toState(props) {
-    console.log('_toState');
-    let { rows, partialScoring, numberOfCorrectRowResponses } = props;
+    let { rows, partialScoring } = props;
     return {
       partialScoring: (partialScoring === undefined) ? rows.map(row => {
         return {
@@ -41,7 +40,8 @@ class MultiPartialScoringConfig extends React.Component {
     };
 
     let correctAnswersForRow = (rowId) => {
-      return correctResponse.find(({ id }) => id === rowId).matchSet.reduce((acc, v) => acc + (v === true ? 1 : 0), 0);
+      let correctResponseRow = correctResponse.find(({ id }) => id === rowId);
+      return correctResponseRow ? correctResponseRow.matchSet.reduce((acc, v) => acc + (v === true ? 1 : 0), 0) : 0;
     }
 
     let canDoScoring = rows.find(({ id }) => hasMultipleCorrectResponses(id)) !== undefined;
@@ -56,7 +56,7 @@ class MultiPartialScoringConfig extends React.Component {
         <CardText expandable={true}>{
           this.state.partialScoring.filter(({ rowId }) => hasMultipleCorrectResponses(rowId)).map((row, index) => {
             let partialScoringChange = (partialScoring) => this._partialScoringChange(row.rowId, partialScoring);
-            return <div className="row" key={`row-${index}`}>
+            return <div className={`row row-${row.rowId}`} key={`row-${row.rowId}`}>
               <div className="row-label" dangerouslySetInnerHTML={{__html: this.props.rows.find(({ id }) => id === row.rowId ).labelHtml}}></div>
               <div>
                 <ScoringConfigRow 
