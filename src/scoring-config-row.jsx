@@ -18,9 +18,13 @@ export default class ScoringConfigRow extends React.Component {
     this.state = this._toState(props);
   }
 
+  componentWillReceiveProps(props) {
+    this.setState(this._toState(props));
+  }
+
   _toState(props) {
     return {
-      partialScoring: (props.partialScoring === undefined) ? [
+      partialScoring: (props.partialScoring === undefined || _.isEmpty(props.partialScoring)) ? [
         {
           correctCount: '',
           weight: ''
@@ -91,7 +95,9 @@ export default class ScoringConfigRow extends React.Component {
       } else {
         newScoring[key] = parseFloat(value);
       }
-      this._updateScoring(update);
+      if (!this._isInProgress(newScoring)) {
+        this._updateScoring(update);
+      }
     } catch (e) {
       console.log('error', e);
     }

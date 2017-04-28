@@ -14,12 +14,16 @@ class MultiPartialScoringConfig extends React.Component {
     this.state = this._toState(props);
   }
 
+  componentWillReceiveProps(props) {
+    this.setState(this._toState(props));
+  }
+
   _toState(props) {
     let { rows, partialScoring } = props;
     return {
-      partialScoring: (partialScoring === undefined) ? rows.map(row => {
+      partialScoring: (partialScoring === undefined) ? rows.map(({id}) => {
         return {
-          rowId: row.id,
+          rowId: id,
           scoring: []
         };
       }) : props.partialScoring
@@ -61,7 +65,7 @@ class MultiPartialScoringConfig extends React.Component {
               <div>
                 <ScoringConfigRow 
                     numberOfCorrectResponses={correctAnswersForRow(row.rowId)}
-                    partialScoring={this.state.partialScoring.find(({rowId}) => rowId === row.id)}
+                    partialScoring={this.state.partialScoring.find(({rowId}) => rowId === row.rowId).scoring}
                     onPartialScoringChange={partialScoringChange} />
               </div>
             </div>
